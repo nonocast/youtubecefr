@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# 默认测试视频 URL
+DEFAULT_URL="https://www.youtube.com/watch?v=74i7daegNZE"
+
+# 判断是否传入参数
+if [ "$#" -lt 1 ]; then
+  echo "⚠️ 未提供参数，使用默认测试视频：$DEFAULT_URL"
+  URL="$DEFAULT_URL"
+else
+  URL="$1"
+fi
+
+LOGGER_LEVEL=WARNING LLM_PROVIDER=deepseek uv run main.py "$URL"
