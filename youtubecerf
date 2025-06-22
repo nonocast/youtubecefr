@@ -11,4 +11,4 @@ else
   URL="$1"
 fi
 
-LOGGER_LEVEL=WARNING LLM_PROVIDER=deepseek uv run main.py "$URL"
+LOGGER_LEVEL=INFO LLM_PROVIDER=openai uv run main.py "$URL"

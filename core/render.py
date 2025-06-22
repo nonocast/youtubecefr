@@ -2,15 +2,23 @@ import json
 import logging
 import os
 import requests
+import humanize
 from openai import OpenAI
+from datetime import datetime, timezone
+from dateutil import parser 
 
 logger = logging.getLogger(__name__)
+
+def time_ago(published_at_str: str) -> str:
+    dt = parser.parse(published_at_str).replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    return humanize.naturaltime(now - dt)
 
 def build_render_prompt(info: dict, analysis: dict) -> str:
     json_input = json.dumps({
         "title": info["title"],
         "channel_title": info["channel_title"],
-        "published_at": info["published_at"],
+        "published_at": time_ago(info["published_at"]),
         "view_count": info["view_count"],
         "like_count": info["like_count"],
         "comment_count": info["comment_count"],
@@ -25,9 +33,10 @@ def build_render_prompt(info: dict, analysis: dict) -> str:
     return f"""
 你是一个语言学习助手，请将以下 JSON 格式的视频信息，按照下面固定模板渲染为适合命令行显示的格式：
 
-标题: {{title}}  
+标题: {{title}}
 摘要: {{summary}}  
-作者: {{channel_title}} ｜{{published_at}}（请将时间转为“2 年前”这种相对表达）  
+作者: {{channel_title}}
+发布时间: {{published_at}}
 播放: {{view_count}} ｜👍 {{like_count}} ｜💬 {{comment_count}}  
 时长: {{duration_minutes}} 分钟  
 分类: {{category}}  

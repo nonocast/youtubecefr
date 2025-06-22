@@ -26,3 +26,6 @@ __pycache__/
 # 虚拟环境目录（如果有）
 .venv/
 env/
+
+
+videos/
