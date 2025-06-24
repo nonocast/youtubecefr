@@ -11,6 +11,34 @@ def extract_video_id(url: str) -> str:
     query = parse_qs(parsed.query)
     return query.get("v", [None])[0]
 
+def save_as_vtt(transcript_list, output_path):
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("WEBVTT\n\n")
+        for i, entry in enumerate(transcript_list):
+            start = format_timestamp(entry['start'])
+            end = format_timestamp(entry['start'] + entry['duration'])
+            text = entry['text'].replace('\n', ' ').strip()
+            f.write(f"{start} --> {end}\n{text}\n\n")
+
+    # 自动生成 play.sh 脚本
+    video_dir = os.path.dirname(output_path)
+    video_id = os.path.basename(video_dir)
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+    play_script_path = os.path.join(video_dir, "play.sh")
+
+    with open(play_script_path, "w", encoding="utf-8") as f:
+        f.write("#!/bin/bash\n")
+        f.write(f'mpv "{video_url}" --sub-file="subtitles.vtt"\n')
+
+    os.chmod(play_script_path, 0o755)
+
+def format_timestamp(seconds):
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds - int(seconds)) * 1000)
+    return f"{h:02}:{m:02}:{s:02}.{ms:03}"
+
 def download_transcript(video_url: str, base_dir: str = "videos"):
     video_id = extract_video_id(video_url)
     output_dir = os.path.join(base_dir, video_id)
@@ -39,6 +67,8 @@ def download_transcript(video_url: str, base_dir: str = "videos"):
                     buffer = ""
         if buffer.strip():
             f.write(buffer.strip() + "\n")
+
+    save_as_vtt(transcript_list, os.path.join(output_dir, "subtitles.vtt"))
 
     logging.info(f"✅ 字幕已保存至 {path_plain} 和 {path_time}")
 
